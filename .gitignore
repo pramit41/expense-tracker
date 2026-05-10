@@ -1,0 +1,15 @@
+node_modules/
+dist/
+cdk.out/
+.env
+.env.local
+*.js.map
+*.d.ts
+
+# CDK asset staging
+cdk.out
+
+# Angular
+.angular/
+/angular/dist/
+/angular/node_modules/

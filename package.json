@@ -1,0 +1,13 @@
+{
+  "name": "expense-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "infra",
+    "lambdas/*"
+  ],
+  "scripts": {
+    "deploy": "npm --workspace=infra run build && npm --workspace=infra run cdk -- deploy",
+    "destroy": "npm --workspace=infra run cdk -- destroy"
+  }
+}

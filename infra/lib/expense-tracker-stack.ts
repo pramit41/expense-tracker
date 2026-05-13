@@ -4,6 +4,8 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
+import * as s3 from "aws-cdk-lib/aws-s3";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 import * as path from "path";
 
@@ -93,6 +95,60 @@ export class ExpenseTrackerStack extends cdk.Stack {
       logRetention: logs.RetentionDays.ONE_WEEK,
     });
 
+    // ── Phase 3 storage + data resources ─────────────────────────────────
+    const receiptsBucket = new s3.Bucket(this, "ReceiptsBucket", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      cors: [
+        {
+          allowedOrigins: ["http://localhost:4200"],
+          allowedMethods: [s3.HttpMethods.PUT],
+          allowedHeaders: ["*"],
+          exposedHeaders: ["ETag"],
+        },
+      ],
+    });
+
+    const expensesTable = new dynamodb.Table(this, "ExpensesTable", {
+      partitionKey: { name: "PK", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "SK", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    receiptsBucket.grantPut(lambdaRole);
+    expensesTable.grantReadWriteData(lambdaRole);
+
+    const uploadLambda = new lambda.Function(this, "UploadLambda", {
+      functionName: "expense-tracker-upload",
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      code: lambda.Code.fromAsset(path.join(__dirname, "../../lambdas/upload")),
+      role: lambdaRole,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 256,
+      environment: {
+        NODE_ENV: "production",
+        S3_BUCKET: receiptsBucket.bucketName,
+      },
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    });
+
+    const expensesLambda = new lambda.Function(this, "ExpensesLambda", {
+      functionName: "expense-tracker-expenses",
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      code: lambda.Code.fromAsset(path.join(__dirname, "../../lambdas/expenses")),
+      role: lambdaRole,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 256,
+      environment: {
+        NODE_ENV: "production",
+        DYNAMODB_TABLE: expensesTable.tableName,
+      },
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    });
+
     // ── API Gateway ───────────────────────────────────────────────────────
     const api = new apigateway.RestApi(this, "ExpenseTrackerApi", {
       restApiName: "expense-tracker-api",
@@ -132,7 +188,6 @@ export class ExpenseTrackerStack extends cdk.Stack {
       }
     );
 
-    // This line is what was missing — explicitly binds the authorizer to the API
     authorizer._attachToApi(api);
 
     // ── Routes ────────────────────────────────────────────────────────────
@@ -148,7 +203,56 @@ export class ExpenseTrackerStack extends cdk.Stack {
       }
     );
 
+    const uploads = api.root.addResource("uploads");
+    const presignedUrl = uploads.addResource("presigned-url");
+    presignedUrl.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(uploadLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer,
+      }
+    );
+
+    const expenses = api.root.addResource("expenses");
+    expenses.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(expensesLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer,
+      }
+    );
+    expenses.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(expensesLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer,
+      }
+    );
+
+    const expenseId = expenses.addResource("{id}");
+    expenseId.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(expensesLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer,
+      }
+    );
+
     // ── Outputs ───────────────────────────────────────────────
+    new cdk.CfnOutput(this, "ReceiptsBucketName", {
+      value: receiptsBucket.bucketName,
+      description: "Receipts S3 bucket name",
+    });
+
+    new cdk.CfnOutput(this, "ExpensesTableName", {
+      value: expensesTable.tableName,
+      description: "DynamoDB expenses table name",
+    });
+
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.url,
       exportName: "ExpenseTrackerApiUrl",

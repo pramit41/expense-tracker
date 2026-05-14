@@ -1,0 +1,141 @@
+<mat-toolbar color="primary">
+  <span>Expense Tracker</span>
+  <span class="spacer"></span>
+  <span class="user-email">{{ auth.currentUser()?.email }}</span>
+  <button mat-stroked-button (click)="auth.logout()">Sign out</button>
+</mat-toolbar>
+
+<div class="page">
+  <mat-card class="panel">
+    <h2>Upload receipt image</h2>
+    <p>
+      Select a receipt image, then upload it to S3. After upload, the receipt
+      key will be attached when you save an expense.
+    </p>
+
+    <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="uploadReceipt()"
+      [disabled]="!selectedFile || isSubmitting"
+    >
+      Upload receipt
+    </button>
+
+    <p class="message" *ngIf="uploadMessage">{{ uploadMessage }}</p>
+    <p *ngIf="receiptKey">
+      Uploaded receipt key: <code>{{ receiptKey }}</code>
+    </p>
+  </mat-card>
+
+  <mat-card class="panel">
+    <h2>Add manual expense</h2>
+    <form (ngSubmit)="createExpense()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Merchant</mat-label>
+        <input
+          matInput
+          name="merchant"
+          required
+          [(ngModel)]="newExpense.merchant"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Amount</mat-label>
+        <input
+          matInput
+          type="number"
+          name="amount"
+          required
+          [(ngModel)]="newExpense.amount"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Currency</mat-label>
+        <mat-select name="currency" required [(ngModel)]="newExpense.currency">
+          <mat-option value="USD">USD</mat-option>
+          <mat-option value="EUR">EUR</mat-option>
+          <mat-option value="GBP">GBP</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Date</mat-label>
+        <input
+          matInput
+          type="date"
+          name="date"
+          required
+          [(ngModel)]="newExpense.date"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Category</mat-label>
+        <mat-select name="category" required [(ngModel)]="newExpense.category">
+          <mat-option *ngFor="let option of categories" [value]="option">{{
+            option
+          }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="
+          isSubmitting ||
+          !newExpense.merchant ||
+          !newExpense.amount ||
+          !newExpense.date ||
+          !newExpense.category
+        "
+      >
+        Save expense
+      </button>
+    </form>
+  </mat-card>
+
+  <mat-card class="panel">
+    <h2>Your expenses</h2>
+    <p *ngIf="isLoading">Loading expenses...</p>
+    <p *ngIf="!isLoading && !expenses.length">
+      You don't have any expenses yet.
+    </p>
+
+    <table class="expenses-table" *ngIf="expenses.length">
+      <thead>
+        <tr>
+          <th>Merchant</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Receipt</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let expense of expenses">
+          <td>{{ expense.merchant }}</td>
+          <td>{{ expense.amount | number: "1.2-2" }} {{ expense.currency }}</td>
+          <td>{{ expense.date }}</td>
+          <td>{{ expense.category }}</td>
+          <td>{{ expense.receiptS3Key ? "Uploaded" : "None" }}</td>
+          <td>
+            <button
+              mat-stroked-button
+              color="warn"
+              (click)="deleteExpense(expense.expenseId)"
+              [disabled]="isSubmitting"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </mat-card>
+</div>

@@ -1,0 +1,35 @@
+.spacer {
+  flex: 1 1 auto;
+}
+.user-email {
+  font-size: 0.9rem;
+  margin-right: 1rem;
+  opacity: 0.85;
+}
+.page {
+  max-width: 960px;
+  margin: 2rem auto;
+  display: grid;
+  gap: 1.5rem;
+}
+.panel {
+  padding: 1.5rem;
+}
+.full-width {
+  width: 100%;
+}
+.expenses-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.expenses-table th,
+.expenses-table td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+.message {
+  margin-top: 1rem;
+  color: #444;
+}

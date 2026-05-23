@@ -6,6 +6,7 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as s3_notifications from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import * as path from "path";
 
@@ -117,7 +118,17 @@ export class ExpenseTrackerStack extends cdk.Stack {
     });
 
     receiptsBucket.grantPut(lambdaRole);
+    receiptsBucket.grantRead(lambdaRole);
     expensesTable.grantReadWriteData(lambdaRole);
+
+    // Grant Secrets Manager access to the shared Lambda role for Claude API key
+    lambdaRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: [`arn:aws:secretsmanager:${this.region}:${this.account}:secret:expense-tracker/anthropic-api-key-*`],
+      })
+    );
 
     const uploadLambda = new lambda.Function(this, "UploadLambda", {
       functionName: "expense-tracker-upload",
@@ -148,6 +159,31 @@ export class ExpenseTrackerStack extends cdk.Stack {
       },
       logRetention: logs.RetentionDays.ONE_WEEK,
     });
+
+    // ── Phase 4 Receipt Parser Lambda ────────────────────────────────────
+    const receiptParserLambda = new lambda.Function(this, "ReceiptParserLambda", {
+      functionName: "expense-tracker-receipt-parser",
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      code: lambda.Code.fromAsset(path.join(__dirname, "../../lambdas/receipt-parser")),
+      role: lambdaRole,
+      timeout: cdk.Duration.seconds(60),
+      memorySize: 512,
+      environment: {
+        NODE_ENV: "production",
+        S3_BUCKET: receiptsBucket.bucketName,
+        DYNAMODB_TABLE: expensesTable.tableName,
+        CLAUDE_API_KEY_SECRET: "expense-tracker/anthropic-api-key",
+      },
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    });
+
+    // Wire S3 event notification to trigger the receipt parser Lambda
+    receiptsBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3_notifications.LambdaDestination(receiptParserLambda),
+      { prefix: "uploads/" }
+    );
 
     // ── API Gateway ───────────────────────────────────────────────────────
     const api = new apigateway.RestApi(this, "ExpenseTrackerApi", {

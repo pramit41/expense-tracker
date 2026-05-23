@@ -21,10 +21,19 @@ const jsonResponse = (statusCode, body) => ({
   body: JSON.stringify(body),
 });
 
+const getUserId = (event) => {
+  return event.requestContext?.authorizer?.claims?.sub;
+};
+
 exports.handler = async (event) => {
   try {
     if (!bucket) {
       return jsonResponse(500, { message: 'S3_BUCKET is not configured' });
+    }
+
+    const userId = getUserId(event);
+    if (!userId) {
+      return jsonResponse(401, { message: 'Unauthorized' });
     }
 
     const body = event.body ? JSON.parse(event.body) : {};
@@ -40,6 +49,9 @@ exports.handler = async (event) => {
       Bucket: bucket,
       Key: key,
       ContentType: contentType,
+      Metadata: {
+        'user-id': userId,
+      },
     });
 
     const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });

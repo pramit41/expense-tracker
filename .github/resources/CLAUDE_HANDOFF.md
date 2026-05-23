@@ -1,4 +1,4 @@
-# Expense Tracker — Project Handoff Instruction
+# Expense Tracker — Project Progressionß Instruction
 
 This file gives Claude full context to continue helping with this project.
 Attach it at the start of a new conversation.
@@ -113,7 +113,7 @@ Built as a learning project to develop full-stack and AI engineering skills.
 ### Phase 3 — S3 + DynamoDB + expenses CRUD ✅
 - S3 bucket created for receipt image uploads
 - DynamoDB table created for expense records
-- `UploadLambda` returns presigned S3 URLs for direct browser upload
+- `UploadLambda` returns presigned S3 URLs for direct browser upload (with user ID metadata)
 - `ExpensesLambda` implements:
   - `GET /expenses`
   - `POST /expenses`
@@ -125,12 +125,19 @@ Built as a learning project to develop full-stack and AI engineering skills.
   - expense deletion
 - Existing auth and API protection are wired through Cognito and Amplify
 
+### Phase 4 — Claude vision receipt parsing and auto-expense creation ✅
+- Receipt parser Lambda created and deployed
+- S3 event notifications configured to trigger parser on file upload
+- User identity (user ID) captured in S3 object metadata during upload
+- Claude vision API integration extracts merchant, amount, date, and category from receipt images
+- Parsed expenses automatically saved to DynamoDB with receipt reference
+- End-to-end flow verified: upload receipt → parse with Claude → save to DynamoDB → appear in expense list
+
 ---
 
 ## Known issues / decisions made
 
 - **Image rendering is not implemented yet.** Receipts are uploaded to S3, but the UI does not display a receipt preview.
-- **Claude parsing is not implemented yet.** Phase 4 will add receipt parsing and automatic expense creation.
 - **S3 bucket CORS** is configured for dev browser upload from `http://localhost:4200`.
 - **Default Cognito email sender** is still in use, which is fine for dev but should switch to SES before production.
 - **CDK domain prefix** `expense-tracker-dev` must be globally unique for Cognito Hosted UI.
@@ -163,29 +170,28 @@ export const environment = {
 | 1 | ✅ Done | CDK, API Gateway, hello Lambda |
 | 2 | ✅ Done | Cognito, Angular shell, login/register/logout |
 | 3 | ✅ Done | S3 upload, DynamoDB CRUD, expenses CRUD UI |
-| 4 | 🔲 Next | Claude vision receipt parsing and auto-expense creation |
-| 5 | 🔲 | Angular dashboard, charts, category editor |
+| 4 | ✅ Done | Claude vision receipt parsing and auto-expense creation |
+| 5 | 🔲 Next | Angular dashboard, charts, category editor |
 | Stretch | 🔲 | SNS budget alerts, CSV export, multi-user households |
 
 ---
 
-## Phase 4 plan (next)
+## Phase 5 plan (next)
 
-Phase 4 adds AI-powered receipt parsing and automatic workflow support.
+Phase 5 adds analytics and visualization capabilities.
 
 **What to build next:**
-- Add a Claude vision Lambda to parse uploaded receipt images
-- Trigger processing on S3 object creation
-- Extract merchant, amount, date, category from the receipt image
-- Save parsed expenses to DynamoDB automatically
-- Update Angular UI to surface parsed receipt details
+- Angular dashboard with expense summary and charts
+- Category breakdown visualization
+- Monthly expense trends
+- Budget editor for custom categories
+- Expense filtering and search
 
 **Expected result:**
-- User uploads a receipt image
-- S3 triggers a Lambda
-- Lambda calls Claude / vision API
-- Parsed fields are written to DynamoDB
-- The expense appears in the Angular expense list automatically
+- Users can visualize spending patterns
+- Dashboard shows expense breakdown by category
+- Interactive charts for expense trends over time
+- Ability to manage and edit expense categories
 
 ---
 

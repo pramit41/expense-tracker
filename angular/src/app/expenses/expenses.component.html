@@ -33,7 +33,7 @@
     <h2>Add manual expense</h2>
     <form (ngSubmit)="createExpense()">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Merchant</mat-label>
+        <mat-label>Merchant/Expense</mat-label>
         <input
           matInput
           name="merchant"
@@ -109,6 +109,7 @@
     <table class="expenses-table" *ngIf="expenses.length">
       <thead>
         <tr>
+          <th></th>
           <th>Merchant</th>
           <th>Amount</th>
           <th>Date</th>
@@ -118,23 +119,53 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let expense of expenses">
-          <td>{{ expense.merchant }}</td>
-          <td>{{ expense.amount | number: "1.2-2" }} {{ expense.currency }}</td>
-          <td>{{ expense.date }}</td>
-          <td>{{ expense.category }}</td>
-          <td>{{ expense.receiptS3Key ? "Uploaded" : "None" }}</td>
-          <td>
-            <button
-              mat-stroked-button
-              color="warn"
-              (click)="deleteExpense(expense.expenseId)"
-              [disabled]="isSubmitting"
-            >
-              Delete
-            </button>
-          </td>
-        </tr>
+        <ng-container *ngFor="let expense of expenses">
+          <tr>
+            <td class="expand-icon">
+              <button
+                mat-icon-button
+                *ngIf="expense.receiptS3Key"
+                (click)="toggleExpand(expense.expenseId, expense.receiptS3Key)"
+                [attr.aria-expanded]="expandedExpenseId === expense.expenseId"
+              >
+                <span *ngIf="expandedExpenseId !== expense.expenseId">▶</span>
+                <span *ngIf="expandedExpenseId === expense.expenseId">▼</span>
+              </button>
+            </td>
+            <td>{{ expense.merchant }}</td>
+            <td>{{ expense.amount | number: "1.2-2" }} {{ expense.currency }}</td>
+            <td>{{ expense.date }}</td>
+            <td>{{ expense.category }}</td>
+            <td>
+              <span *ngIf="!expense.receiptS3Key" class="no-receipt">None</span>
+              <span *ngIf="expense.receiptS3Key" class="has-receipt">✓ Attached</span>
+            </td>
+            <td>
+              <button
+                mat-stroked-button
+                color="warn"
+                (click)="deleteExpense(expense.expenseId, expense.merchant)"
+                [disabled]="isSubmitting"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+          <!-- Expanded row with receipt image -->
+          <tr *ngIf="expandedExpenseId === expense.expenseId && expense.receiptS3Key" class="expanded-row">
+            <td colspan="7" class="receipt-container">
+              <div class="receipt-content">
+                <img
+                  *ngIf="receiptUrls.get(expense.receiptS3Key)"
+                  [src]="receiptUrls.get(expense.receiptS3Key)"
+                  alt="Receipt for {{ expense.merchant }}"
+                  class="receipt-image"
+                />
+                <p *ngIf="!receiptUrls.get(expense.receiptS3Key)">Loading receipt...</p>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
   </mat-card>

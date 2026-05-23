@@ -28,4 +28,10 @@ export class ExpenseService {
       contentType,
     });
   }
+
+  getPresignedViewUrl(s3Key: string): Observable<{ viewUrl: string }> {
+    return this.http.post<{ viewUrl: string }>(`${this.apiUrl}/uploads/presigned-view`, {
+      s3Key,
+    });
+  }
 }

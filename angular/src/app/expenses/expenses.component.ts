@@ -8,9 +8,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthService } from '../auth/auth.service';
 import { ExpenseService } from '../services/expense.service';
 import { Expense, ExpenseCreatePayload } from '../models/expense.model';
+import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 
 @Component({
   selector: 'app-expenses',
@@ -24,6 +26,7 @@ import { Expense, ExpenseCreatePayload } from '../models/expense.model';
     MatInputModule,
     MatSelectModule,
     MatCardModule,
+    MatDialogModule,
   ],
   templateUrl: './expenses.component.html',
   styleUrls: [
@@ -38,6 +41,8 @@ export class ExpensesComponent {
   uploadMessage = '';
   selectedFile: File | null = null;
   receiptKey: string | null = null;
+  expandedExpenseId: string | null = null;
+  receiptUrls: Map<string, string> = new Map();
   newExpense: Partial<ExpenseCreatePayload> = {
     merchant: '',
     amount: 0,
@@ -47,7 +52,7 @@ export class ExpensesComponent {
     receiptS3Key: null,
   };
 
-  constructor(public auth: AuthService, private expenseService: ExpenseService) {
+  constructor(public auth: AuthService, private expenseService: ExpenseService, private dialog: MatDialog) {
     this.loadExpenses();
   }
 
@@ -142,7 +147,17 @@ export class ExpensesComponent {
     }
   }
 
-  async deleteExpense(expenseId: string): Promise<void> {
+  async deleteExpense(expenseId: string, merchantName: string): Promise<void> {
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      data: { merchant: merchantName },
+      width: '400px',
+    });
+
+    const confirmed = await firstValueFrom(dialogRef.afterClosed());
+    if (!confirmed) {
+      return;
+    }
+
     this.isSubmitting = true;
     try {
       await firstValueFrom(this.expenseService.deleteExpense(expenseId));
@@ -151,6 +166,26 @@ export class ExpensesComponent {
       console.error('Could not delete expense', error);
     } finally {
       this.isSubmitting = false;
+    }
+  }
+
+  toggleExpand(expenseId: string, receiptS3Key: string | null): void {
+    if (this.expandedExpenseId === expenseId) {
+      this.expandedExpenseId = null;
+    } else {
+      this.expandedExpenseId = expenseId;
+      if (receiptS3Key && !this.receiptUrls.has(receiptS3Key)) {
+        this.loadReceiptUrl(receiptS3Key);
+      }
+    }
+  }
+
+  private async loadReceiptUrl(s3Key: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.expenseService.getPresignedViewUrl(s3Key));
+      this.receiptUrls.set(s3Key, response.viewUrl);
+    } catch (error) {
+      console.error('Could not load receipt URL', error);
     }
   }
 }

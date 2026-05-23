@@ -250,6 +250,16 @@ export class ExpenseTrackerStack extends cdk.Stack {
       }
     );
 
+    const presignedView = uploads.addResource("presigned-view");
+    presignedView.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(uploadLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer,
+      }
+    );
+
     const expenses = api.root.addResource("expenses");
     expenses.addMethod(
       "GET",

@@ -9,18 +9,17 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AuthService } from "../auth.service";
 
 @Component({
-  selector: "app-login",
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-  ],
-  template: `
+    selector: "app-login",
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterLink,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+    ],
+    template: `
     <div class="auth-container">
       <div class="auth-card">
         <h1>Expense Tracker</h1>
@@ -71,8 +70,8 @@ import { AuthService } from "../auth.service";
       </div>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .auth-container {
         display: flex;
         justify-content: center;
@@ -126,7 +125,7 @@ import { AuthService } from "../auth.service";
         margin: 0 auto;
       }
     `,
-  ],
+    ]
 })
 export class LoginComponent {
   email = "";

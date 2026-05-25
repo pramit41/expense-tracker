@@ -11,18 +11,17 @@ import { AuthService } from "../auth.service";
 type Step = "register" | "confirm";
 
 @Component({
-  selector: "app-register",
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-  ],
-  template: `
+    selector: "app-register",
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterLink,
+        MatFormFieldModule,
+        MatInputModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+    ],
+    template: `
     <div class="auth-container">
       <div class="auth-card">
         <h1>Expense Tracker</h1>
@@ -112,8 +111,8 @@ type Step = "register" | "confirm";
       </div>
     </div>
   `,
-  styles: [
-    `
+    styles: [
+        `
       .auth-container {
         display: flex;
         justify-content: center;
@@ -171,7 +170,7 @@ type Step = "register" | "confirm";
         margin: 0 auto;
       }
     `,
-  ],
+    ]
 })
 export class RegisterComponent {
   email = "";

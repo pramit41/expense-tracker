@@ -16,24 +16,23 @@ import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component'
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-expenses',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCardModule,
-    MatDialogModule,
-    MatIconModule,
-  ],
-  templateUrl: './expenses.component.html',
-  styleUrls: [
-    './expenses.component.scss',
-  ],
+    selector: 'app-expenses',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatButtonModule,
+        MatToolbarModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatCardModule,
+        MatDialogModule,
+        MatIconModule,
+    ],
+    templateUrl: './expenses.component.html',
+    styleUrls: [
+        './expenses.component.scss',
+    ]
 })
 export class ExpensesComponent {
   categories = ['Dining', 'Grocery', 'Travel', 'Utilities', 'Office', 'Other'];

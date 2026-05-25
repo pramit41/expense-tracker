@@ -4,10 +4,9 @@ import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
-  selector: 'app-confirm-delete-dialog',
-  standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule],
-  template: `
+    selector: 'app-confirm-delete-dialog',
+    imports: [CommonModule, MatDialogModule, MatButtonModule],
+    template: `
     <h2 mat-dialog-title>Confirm Deletion</h2>
     <mat-dialog-content>
       <p>Are you sure you want to delete the expense for <strong>{{ data.merchant }}</strong>?</p>
@@ -17,7 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
       <button mat-button (click)="onCancel()">Cancel</button>
       <button mat-raised-button color="warn" (click)="onConfirm()">Delete</button>
     </mat-dialog-actions>
-  `,
+  `
 })
 export class ConfirmDeleteDialogComponent {
   constructor(

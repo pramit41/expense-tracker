@@ -109,29 +109,18 @@
     <table class="expenses-table" *ngIf="expenses.length">
       <thead>
         <tr>
-          <th></th>
           <th>Merchant</th>
           <th>Amount</th>
           <th>Date</th>
           <th>Category</th>
           <th>Receipt</th>
           <th></th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <ng-container *ngFor="let expense of expenses">
           <tr>
-            <td class="expand-icon">
-              <button
-                mat-icon-button
-                *ngIf="expense.receiptS3Key"
-                (click)="toggleExpand(expense.expenseId, expense.receiptS3Key)"
-                [attr.aria-expanded]="expandedExpenseId === expense.expenseId"
-              >
-                <span *ngIf="expandedExpenseId !== expense.expenseId">▶</span>
-                <span *ngIf="expandedExpenseId === expense.expenseId">▼</span>
-              </button>
-            </td>
             <td>{{ expense.merchant }}</td>
             <td>{{ expense.amount | number: "1.2-2" }} {{ expense.currency }}</td>
             <td>{{ expense.date }}</td>
@@ -140,14 +129,35 @@
               <span *ngIf="!expense.receiptS3Key" class="no-receipt">None</span>
               <span *ngIf="expense.receiptS3Key" class="has-receipt">✓ Attached</span>
             </td>
-            <td>
+            <td class="view-receipt-cell">
               <button
                 mat-stroked-button
+                size="small"
+                *ngIf="expense.receiptS3Key"
+                (click)="toggleExpand(expense.expenseId, expense.receiptS3Key)"
+                [attr.aria-expanded]="expandedExpenseId === expense.expenseId"
+              >
+                {{ expandedExpenseId === expense.expenseId ? 'Hide' : 'View' }} Receipt
+              </button>
+            </td>
+            <td>
+              <button
+                mat-icon-button
                 color="warn"
                 (click)="deleteExpense(expense.expenseId, expense.merchant)"
                 [disabled]="isSubmitting"
               >
-                Delete
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </td>
+            <td>
+              <button
+                mat-icon-button
+                color="blue"
+                (click)="editExpense(expense)"
+                [disabled]="isSubmitting"
+              >
+                <mat-icon>edit</mat-icon>
               </button>
             </td>
           </tr>

@@ -13,6 +13,7 @@ import { AuthService } from '../auth/auth.service';
 import { ExpenseService } from '../services/expense.service';
 import { Expense, ExpenseCreatePayload } from '../models/expense.model';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-expenses',
@@ -27,6 +28,7 @@ import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component'
     MatSelectModule,
     MatCardModule,
     MatDialogModule,
+    MatIconModule,
   ],
   templateUrl: './expenses.component.html',
   styleUrls: [
@@ -34,7 +36,7 @@ import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component'
   ],
 })
 export class ExpensesComponent {
-  categories = ['Food', 'Travel', 'Utilities', 'Office', 'Other'];
+  categories = ['Dining', 'Grocery', 'Travel', 'Utilities', 'Office', 'Other'];
   expenses: Expense[] = [];
   isLoading = false;
   isSubmitting = false;
@@ -48,7 +50,7 @@ export class ExpensesComponent {
     amount: 0,
     currency: 'USD',
     date: new Date().toISOString().slice(0, 10),
-    category: 'Food',
+    category: 'Dining',
     receiptS3Key: null,
   };
 
@@ -132,7 +134,7 @@ export class ExpensesComponent {
         amount: 0,
         currency: 'USD',
         date: new Date().toISOString().slice(0, 10),
-        category: 'Food',
+        category: 'Dining',
         receiptS3Key: null,
       };
       this.selectedFile = null;
@@ -167,6 +169,13 @@ export class ExpensesComponent {
     } finally {
       this.isSubmitting = false;
     }
+  }
+
+  async editExpense(expense: Expense): Promise<void> {
+    // For simplicity, we'll just log the expense to be edited.
+    // In a real application, you would open a dialog similar to the create expense form,
+    // pre-populate it with the existing expense data, and allow the user to make changes.
+    console.log('Edit expense', expense);
   }
 
   toggleExpand(expenseId: string, receiptS3Key: string | null): void {

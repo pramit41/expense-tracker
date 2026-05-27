@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand, UpdateCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const { randomBytes } = require('crypto');
 
 const client = new DynamoDBClient({});
@@ -79,6 +79,41 @@ exports.handler = async (event) => {
 
       await dynamodb.send(command);
       return jsonResponse(201, { expense: item });
+    }
+
+    if (method === 'PUT') {
+      const expenseId = event.pathParameters?.id;
+      if (!expenseId) {
+        return jsonResponse(400, { message: 'Missing expense id' });
+      }
+
+      const body = event.body ? JSON.parse(event.body) : {};
+      const { merchant, amount, currency, date, category, receiptS3Key } = body;
+
+      if (!merchant || amount == null || !currency || !date || !category) {
+        return jsonResponse(400, { message: 'Missing required expense fields' });
+      }
+
+      const command = new UpdateCommand({
+        TableName: tableName,
+        Key: { PK: userId, SK: expenseId },
+        UpdateExpression: 'SET merchant = :merchant, amount = :amount, currency = :currency, #d = :val, category = :category, receiptS3Key = :receiptS3Key',
+        ExpressionAttributeNames: {
+          '#d': 'date',
+        },
+        ExpressionAttributeValues: {
+          ':merchant': merchant,
+          ':amount': Number(amount),
+          ':currency': currency,
+          ':val': date,
+          ':category': category,
+          ':receiptS3Key': receiptS3Key || null,
+        },
+        ReturnValues: 'ALL_NEW',
+      });
+
+      const result = await dynamodb.send(command);
+      return jsonResponse(200, { expense: result.Attributes });
     }
 
     if (method === 'DELETE') {

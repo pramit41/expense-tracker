@@ -14,6 +14,7 @@ import { ExpenseService } from '../services/expense.service';
 import { Expense, ExpenseCreatePayload } from '../models/expense.model';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
+import { EditExpenseModalComponent } from './edit-modal/edit-expense-modal.component';
 
 @Component({
     selector: 'app-expenses',
@@ -171,10 +172,24 @@ export class ExpensesComponent {
   }
 
   async editExpense(expense: Expense): Promise<void> {
-    // For simplicity, we'll just log the expense to be edited.
-    // In a real application, you would open a dialog similar to the create expense form,
-    // pre-populate it with the existing expense data, and allow the user to make changes.
-    console.log('Edit expense', expense);
+    const dialogRef = this.dialog.open(EditExpenseModalComponent, {
+      data: expense,
+      width: '400px',
+    });
+
+    const updatedExpense = await firstValueFrom(dialogRef.afterClosed());
+    this.isSubmitting = true;
+    if (!updatedExpense) {
+      return;
+    }
+    try {
+      await firstValueFrom(this.expenseService.updateExpense(expense.expenseId, updatedExpense));
+      await this.loadExpenses();
+    } catch (error) {
+      console.error('Could not update expense', error);
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 
   toggleExpand(expenseId: string, receiptS3Key: string | null): void {

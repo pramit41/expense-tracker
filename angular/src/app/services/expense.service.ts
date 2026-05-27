@@ -18,6 +18,10 @@ export class ExpenseService {
     return this.http.post<{ expense: Expense }>(`${this.apiUrl}/expenses`, payload);
   }
 
+  updateExpense(expenseId: string, payload: Partial<ExpenseCreatePayload>): Observable<{ expense: Expense }> {
+    return this.http.put<{ expense: Expense }>(`${this.apiUrl}/expenses/${expenseId}`, payload);
+  }
+
   deleteExpense(expenseId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/expenses/${expenseId}`);
   }

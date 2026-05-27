@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>Edit Expense</h2>
+<mat-dialog-content>
+    <form (ngSubmit)="saveChanges()">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Merchant/Expense</mat-label>
+            <input
+                matInput
+                name="merchant"
+                required
+                [(ngModel)]="editData.merchant"
+            />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Amount</mat-label>
+            <input
+                matInput
+                type="number"
+                name="amount"
+                required
+                [(ngModel)]="editData.amount"
+            />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Currency</mat-label>
+            <mat-select name="currency" required [(ngModel)]="editData.currency">
+                <mat-option value="USD">USD</mat-option>
+                <mat-option value="EUR">EUR</mat-option>
+                <mat-option value="GBP">GBP</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date</mat-label>
+            <input
+                matInput
+                type="date"
+                name="date"
+                required
+                [(ngModel)]="editData.date"
+            />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Category</mat-label>
+            <mat-select name="category" required [(ngModel)]="editData.category">
+                <mat-option *ngFor="let option of categories" [value]="option">{{
+                    option
+                }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button
+        mat-raised-button
+        color="primary"
+        (click)="saveChanges()"
+        [disabled]="!editData.merchant || !editData.amount || !editData.date || !editData.category"
+    >
+        Save Changes
+    </button>
+</mat-dialog-actions>

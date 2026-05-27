@@ -279,6 +279,16 @@ export class ExpenseTrackerStack extends cdk.Stack {
     );
 
     const expenseId = expenses.addResource("{id}");
+
+    expenseId.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(expensesLambda),
+      {
+        authorizationType: apigateway.AuthorizationType.COGNITO,
+        authorizer,
+      }
+    );
+
     expenseId.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(expensesLambda),

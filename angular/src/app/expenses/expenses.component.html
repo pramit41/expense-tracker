@@ -116,6 +116,7 @@
           <th>Receipt</th>
           <th></th>
           <th></th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -163,7 +164,7 @@
           </tr>
           <!-- Expanded row with receipt image -->
           <tr *ngIf="expandedExpenseId === expense.expenseId && expense.receiptS3Key" class="expanded-row">
-            <td colspan="7" class="receipt-container">
+            <td colspan="8" class="receipt-container">
               <div class="receipt-content">
                 <img
                   *ngIf="receiptUrls.get(expense.receiptS3Key)"

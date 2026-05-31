@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { Expense } from '../../models/expense.model';
+import { EXPENSE_CATEGORIES } from 'src/app/models/constants';
 
 @Component({
     selector: 'app-edit-expense-modal',
@@ -25,7 +26,7 @@ import { Expense } from '../../models/expense.model';
     styleUrls: ['./edit-expense-modal.component.scss']
 })
 export class EditExpenseModalComponent {
-    categories = ['Dining', 'Grocery', 'Travel', 'Utilities', 'Office', 'Other'];
+    categories = EXPENSE_CATEGORIES;
     editData: Partial<Expense>;
     
     constructor(

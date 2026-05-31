@@ -15,6 +15,7 @@ import { Expense, ExpenseCreatePayload } from '../models/expense.model';
 import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
 import { EditExpenseModalComponent } from './edit-modal/edit-expense-modal.component';
+import { EXPENSE_CATEGORIES } from '../models/constants';
 
 @Component({
     selector: 'app-expenses',
@@ -36,7 +37,7 @@ import { EditExpenseModalComponent } from './edit-modal/edit-expense-modal.compo
     ]
 })
 export class ExpensesComponent {
-  categories = ['Dining', 'Grocery', 'Travel', 'Utilities', 'Office', 'Other'];
+  categories = EXPENSE_CATEGORIES;
   expenses: Expense[] = [];
   isLoading = false;
   isSubmitting = false;
@@ -103,7 +104,29 @@ export class ExpensesComponent {
       }
 
       this.receiptKey = presigned.key;
-      this.uploadMessage = 'Receipt uploaded. Save an expense to attach this receipt.';
+      this.uploadMessage = 'Receipt uploaded. Processing with AI...';
+
+      // Load initial expense count
+      await this.loadExpenses();
+      const initialCount = this.expenses.length;
+
+      // Poll for new expense (up to 30 seconds)
+      const maxAttempts = 15;
+      for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+        
+        await this.loadExpenses();
+        
+        if (this.expenses.length > initialCount) {
+          this.uploadMessage = 'Receipt processed and expense created!';
+          this.selectedFile = null;
+          this.receiptKey = null;
+          return;
+        }
+      }
+
+      // Timeout — polling didn't find new expense
+      this.uploadMessage = 'Receipt uploaded. Processing may take longer. Check back soon.';
     } catch (error) {
       console.error('Receipt upload failed', error);
       this.uploadMessage = 'Receipt upload failed. Please try again.';
@@ -178,10 +201,11 @@ export class ExpensesComponent {
     });
 
     const updatedExpense = await firstValueFrom(dialogRef.afterClosed());
-    this.isSubmitting = true;
     if (!updatedExpense) {
       return;
     }
+
+    this.isSubmitting = true;
     try {
       await firstValueFrom(this.expenseService.updateExpense(expense.expenseId, updatedExpense));
       await this.loadExpenses();

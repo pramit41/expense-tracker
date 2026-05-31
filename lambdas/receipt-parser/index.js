@@ -94,7 +94,7 @@ const callClaudeVision = async (imageBuffer, apiKey) => {
   "amount": "numeric amount (without currency symbol)",
   "currency": "currency code (e.g., USD, EUR)",
   "date": "ISO 8601 date format (YYYY-MM-DD)",
-  "category": "one of: Food, Travel, Utilities, Office, Other"
+  "category": "one of: Grocery, Dining, Travel, Utilities, Gas, Office, Other"
 }
 
 If you cannot clearly identify a field, use a reasonable default:

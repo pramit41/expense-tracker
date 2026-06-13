@@ -9,6 +9,8 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as s3_notifications from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import * as path from "path";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 
 export class ExpenseTrackerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -185,6 +187,45 @@ export class ExpenseTrackerStack extends cdk.Stack {
       { prefix: "uploads/" }
     );
 
+    // ── Frontend hosting: S3 + CloudFront ────────────────────────────────
+    const siteBucket = new s3.Bucket(this, "WebsiteBucket", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    const siteOAI = new cloudfront.OriginAccessIdentity(this, "SiteOAI", {
+      comment: "OAI for expense-tracker frontend",
+    });
+
+    // Grant CloudFront read access to the bucket via the OAI
+    siteBucket.grantRead(new iam.CanonicalUserPrincipal(siteOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId));
+
+    const distribution = new cloudfront.Distribution(this, "SiteDistribution", {
+      defaultBehavior: {
+        origin: new origins.S3Origin(siteBucket, { originAccessIdentity: siteOAI }),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      defaultRootObject: "index.html",
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: "/index.html",
+        },
+      ],
+    });
+
+    new cdk.CfnOutput(this, "SiteBucketName", {
+      value: siteBucket.bucketName,
+      description: "Frontend S3 bucket",
+    });
+
+    new cdk.CfnOutput(this, "SiteDistributionDomain", {
+      value: distribution.distributionDomainName,
+      description: "CloudFront distribution domain for frontend",
+    });
+
     // ── API Gateway ───────────────────────────────────────────────────────
     const api = new apigateway.RestApi(this, "ExpenseTrackerApi", {
       restApiName: "expense-tracker-api",
@@ -201,7 +242,7 @@ export class ExpenseTrackerStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: [
           "http://localhost:4200",
-          // Add your deployed frontend URL here later
+          `https://${distribution.distributionDomainName}`,
         ],
         allowMethods: apigateway.Cors.ALL_METHODS,
         allowHeaders: [

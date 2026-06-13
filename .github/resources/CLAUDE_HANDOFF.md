@@ -1,4 +1,4 @@
-# Expense Tracker — Project Progressionß Instruction
+# Expense Tracker — Project Progression Instruction
 
 This file gives Claude full context to continue helping with this project.
 Attach it at the start of a new conversation.

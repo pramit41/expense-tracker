@@ -4,11 +4,12 @@
   "private": true,
   "workspaces": [
     "infra",
+    "angular",
     "lambdas/*"
   ],
   "scripts": {
     "deploy": "npm --workspace=infra run build && npm --workspace=infra run cdk -- deploy",
-    "deploy:dev": "npm --workspace=angular run build:development && aws s3 sync angular/dist/expense-tracker s3://$S3_BUCKET_NAME --delete && aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'",
+    "deploy:dev": "[ -f .env ] && export $(cat .env | xargs) || true && npm --workspace=angular run build:development && aws s3 sync angular/dist/expense-tracker/browser s3://$S3_BUCKET_NAME --delete && aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'",
     "destroy": "npm --workspace=infra run cdk -- destroy"
   }
 }

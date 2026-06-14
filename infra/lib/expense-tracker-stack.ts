@@ -216,16 +216,6 @@ export class ExpenseTrackerStack extends cdk.Stack {
       ],
     });
 
-    new cdk.CfnOutput(this, "SiteBucketName", {
-      value: siteBucket.bucketName,
-      description: "Frontend S3 bucket",
-    });
-
-    new cdk.CfnOutput(this, "SiteDistributionDomain", {
-      value: distribution.distributionDomainName,
-      description: "CloudFront distribution domain for frontend",
-    });
-
     // ── API Gateway ───────────────────────────────────────────────────────
     const api = new apigateway.RestApi(this, "ExpenseTrackerApi", {
       restApiName: "expense-tracker-api",
@@ -374,6 +364,16 @@ export class ExpenseTrackerStack extends cdk.Stack {
  
     new cdk.CfnOutput(this, "LambdaRoleArn", {
       value: lambdaRole.roleArn,
+    });
+
+    new cdk.CfnOutput(this, "SiteBucketName", {
+      value: siteBucket.bucketName,
+      description: "Frontend S3 bucket",
+    });
+
+    new cdk.CfnOutput(this, "SiteDistributionDomain", {
+      value: distribution.distributionDomainName,
+      description: "CloudFront distribution domain for frontend",
     });
   }
 }

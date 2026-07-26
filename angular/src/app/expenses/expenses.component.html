@@ -1,10 +1,3 @@
-<mat-toolbar color="primary">
-  <span>Expense Tracker</span>
-  <span class="spacer"></span>
-  <span class="user-email">{{ auth.currentUser()?.email }}</span>
-  <button mat-stroked-button (click)="auth.logout()">Sign out</button>
-</mat-toolbar>
-
 <div class="page">
   <mat-card class="panel">
     <h2>Upload receipt image</h2>
@@ -97,6 +90,25 @@
         Save expense
       </button>
     </form>
+  </mat-card>
+
+  <mat-card class="panel month-panel">
+    <div class="month-controls">
+      <button mat-icon-button aria-label="Previous month" (click)="shiftMonth(-1)">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <mat-form-field appearance="outline" class="month-picker">
+        <mat-label>Month</mat-label>
+        <input matInput type="month" [ngModel]="selectedMonth" (ngModelChange)="onMonthChange($event)" />
+      </mat-form-field>
+
+      <button mat-icon-button aria-label="Next month" (click)="shiftMonth(1)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <p class="month-summary">Showing expenses for {{ selectedMonthLabel }}</p>
   </mat-card>
 
   <mat-card class="panel">

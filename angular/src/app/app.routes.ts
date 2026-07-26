@@ -15,6 +15,11 @@ export const routes: Routes = [
     loadComponent: () => import('./expenses/expenses.component').then((m) => m.ExpensesComponent),
     canActivate: [authGuard],
   },
-  { path: '', redirectTo: '/expenses', pathMatch: 'full' },
-  { path: '**', redirectTo: '/expenses' },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./dashboard/dashboard.component').then((m) => m.DashboardComponent),
+    canActivate: [authGuard],
+  },
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: '**', redirectTo: '/dashboard' },
 ];

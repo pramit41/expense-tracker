@@ -1,0 +1,97 @@
+<div class="dashboard-page">
+  <div class="hero-card">
+    <div>
+      <p class="eyebrow">Overview</p>
+      <h1>Your spending at a glance</h1>
+      <p class="subtitle">Review your activity for a specific month and compare it with your overall spending.</p>
+    </div>
+    <button mat-flat-button color="primary" routerLink="/expenses">Add expense</button>
+  </div>
+
+  <div class="month-controls">
+    <button mat-icon-button aria-label="Previous month" (click)="shiftMonth(-1)">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <mat-form-field appearance="outline" class="month-picker">
+      <mat-label>Month</mat-label>
+      <input matInput type="month" [ngModel]="selectedMonth" (ngModelChange)="onMonthChange($event)" />
+    </mat-form-field>
+
+    <button mat-icon-button aria-label="Next month" (click)="shiftMonth(1)">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="stats-grid" *ngIf="!isLoading; else loadingState">
+    <mat-card class="stat-card">
+      <div class="stat-icon"><mat-icon>account_balance_wallet</mat-icon></div>
+      <div>
+        <p class="stat-label">{{ selectedMonthLabel }} total</p>
+        <h2>{{ totalSpent | number: '1.2-2' }}</h2>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-icon accent"><mat-icon>calendar_month</mat-icon></div>
+      <div>
+        <p class="stat-label">All-time total</p>
+        <h2>{{ allTimeTotal | number: '1.2-2' }}</h2>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-icon success"><mat-icon>receipt_long</mat-icon></div>
+      <div>
+        <p class="stat-label">Expenses logged</p>
+        <h2>{{ expenseCount }}</h2>
+      </div>
+    </mat-card>
+  </div>
+
+  <ng-template #loadingState>
+    <p class="loading-text">Loading dashboard data...</p>
+  </ng-template>
+
+  <div class="content-grid">
+    <mat-card class="panel-card">
+      <div class="card-header">
+        <h3>Category breakdown</h3>
+        <span>{{ categoryBreakdown.length }} categories</span>
+      </div>
+
+      <div class="breakdown-list" *ngIf="categoryBreakdown.length; else emptyState">
+        <div class="breakdown-item" *ngFor="let item of categoryBreakdown">
+          <div class="breakdown-meta">
+            <strong>{{ item.category }}</strong>
+            <span>{{ item.total | number: '1.2-2' }} • {{ item.count }} items</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" [style.width.%]="getBarWidth(item.total)"></div>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel-card">
+      <div class="card-header">
+        <h3>Recent expenses</h3>
+        <span>Latest 5</span>
+      </div>
+
+      <div class="recent-list" *ngIf="recentExpenses.length; else emptyState">
+        <div class="recent-item" *ngFor="let expense of recentExpenses">
+          <div>
+            <strong>{{ expense.merchant }}</strong>
+            <p>{{ expense.category }} • {{ expense.date }}</p>
+          </div>
+          <span>{{ expense.amount | number: '1.2-2' }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>
+
+<ng-template #emptyState>
+  <p class="empty-state">No expense data yet. Add your first expense to start building the dashboard.</p>
+</ng-template>

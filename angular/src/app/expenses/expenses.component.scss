@@ -12,6 +12,26 @@
   display: grid;
   gap: 1.5rem;
 }
+
+.month-panel {
+  padding: 1rem 1.5rem;
+}
+
+.month-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.month-picker {
+  min-width: 220px;
+}
+
+.month-summary {
+  margin: 0.5rem 0 0;
+  padding: 1rem;
+  color: #666;
+}
 .panel {
   padding: 1.5rem;
 

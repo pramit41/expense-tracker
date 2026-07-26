@@ -38,6 +38,7 @@ import { EXPENSE_CATEGORIES } from '../models/constants';
 })
 export class ExpensesComponent {
   categories = EXPENSE_CATEGORIES;
+  allExpenses: Expense[] = [];
   expenses: Expense[] = [];
   isLoading = false;
   isSubmitting = false;
@@ -46,6 +47,8 @@ export class ExpensesComponent {
   receiptKey: string | null = null;
   expandedExpenseId: string | null = null;
   receiptUrls: Map<string, string> = new Map();
+  selectedMonth = this.getDefaultMonthValue();
+  selectedMonthLabel = '';
   newExpense: Partial<ExpenseCreatePayload> = {
     merchant: '',
     amount: 0,
@@ -63,12 +66,25 @@ export class ExpensesComponent {
     this.isLoading = true;
     try {
       const result = await firstValueFrom(this.expenseService.listExpenses());
-      this.expenses = result;
+      this.allExpenses = result;
+      this.applyMonthFilter();
     } catch (error) {
       console.error('Unable to load expenses', error);
     } finally {
       this.isLoading = false;
     }
+  }
+
+  onMonthChange(value: string): void {
+    this.selectedMonth = value;
+    this.applyMonthFilter();
+  }
+
+  shiftMonth(offset: number): void {
+    const [year, month] = this.selectedMonth.split('-').map(Number);
+    const nextDate = new Date(year, month - 1 + offset, 1);
+    this.selectedMonth = this.toMonthValue(nextDate);
+    this.applyMonthFilter();
   }
 
   onFileSelected(event: Event): void {
@@ -225,6 +241,29 @@ export class ExpensesComponent {
         this.loadReceiptUrl(receiptS3Key);
       }
     }
+  }
+
+  private applyMonthFilter(): void {
+    const [selectedYear, selectedMonth] = this.selectedMonth.split('-').map(Number);
+    const selectedMonthIndex = selectedMonth - 1;
+
+    this.expenses = this.allExpenses.filter((expense) => {
+      const expenseDate = new Date(expense.date);
+      return expenseDate.getFullYear() === selectedYear && expenseDate.getMonth() === selectedMonthIndex;
+    });
+
+    this.selectedMonthLabel = new Date(selectedYear, selectedMonthIndex).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  private getDefaultMonthValue(): string {
+    return this.toMonthValue(new Date());
+  }
+
+  private toMonthValue(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
   private async loadReceiptUrl(s3Key: string): Promise<void> {

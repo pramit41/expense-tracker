@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { ExpenseService } from '../services/expense.service';
 import { Expense } from '../models/expense.model';
+import { UtilitiesService } from '../shared/utilities.service';
 
 interface CategorySummary {
   category: string;
@@ -36,7 +37,10 @@ export class DashboardComponent implements OnInit {
   recentExpenses: Expense[] = [];
   maxCategoryTotal = 0;
 
-  constructor(private expenseService: ExpenseService) {}
+  constructor(
+    private expenseService: ExpenseService, 
+    private utilitiesService: UtilitiesService
+  ) {}
 
   async ngOnInit(): Promise<void> {
     await this.loadExpenses();
@@ -82,8 +86,7 @@ export class DashboardComponent implements OnInit {
     this.allTimeTotal = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
     const filteredExpenses = this.expenses.filter((expense) => {
-      const expenseDate = new Date(expense.date);
-      return expenseDate.getFullYear() === selectedYear && expenseDate.getMonth() === selectedMonthIndex;
+      return this.utilitiesService.isInSelectedMonth(expense.date, selectedYear, selectedMonth);
     });
 
     this.totalSpent = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -108,7 +111,7 @@ export class DashboardComponent implements OnInit {
     this.maxCategoryTotal = this.categoryBreakdown.reduce((max, item) => Math.max(max, item.total), 0);
 
     this.recentExpenses = [...filteredExpenses]
-      .sort((left, right) => new Date(right.date).getTime() - new Date(left.date).getTime())
+      .sort((left, right) => this.utilitiesService.getLocalDate(right.date).getTime() - this.utilitiesService.getLocalDate(left.date).getTime())
       .slice(0, 5);
   }
 

@@ -4,7 +4,8 @@ export enum ExpenseCategory {
   Travel = 'Travel',
   Gas = 'Gas',
   Utilities = 'Utilities',
-  Office = 'Office',
+  Subscriptions = 'Subscriptions',
+  Housing = 'Rent/Mortgage',
   Other = 'Other'
 }
 

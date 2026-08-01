@@ -16,6 +16,7 @@ import { ConfirmDeleteDialogComponent } from './confirm-delete-dialog.component'
 import { MatIconModule } from '@angular/material/icon';
 import { EditExpenseModalComponent } from './edit-modal/edit-expense-modal.component';
 import { EXPENSE_CATEGORIES } from '../models/constants';
+import { UtilitiesService } from '../shared/utilities.service';
 
 @Component({
     selector: 'app-expenses',
@@ -58,7 +59,9 @@ export class ExpensesComponent {
     receiptS3Key: null,
   };
 
-  constructor(public auth: AuthService, private expenseService: ExpenseService, private dialog: MatDialog) {
+  constructor(public auth: AuthService, private expenseService: ExpenseService, private dialog: MatDialog, private utilitiesService: UtilitiesService) {}
+
+  ngOnInit(): void {
     this.loadExpenses();
   }
 
@@ -248,8 +251,7 @@ export class ExpensesComponent {
     const selectedMonthIndex = selectedMonth - 1;
 
     this.expenses = this.allExpenses.filter((expense) => {
-      const expenseDate = new Date(expense.date);
-      return expenseDate.getFullYear() === selectedYear && expenseDate.getMonth() === selectedMonthIndex;
+      return this.utilitiesService.isInSelectedMonth(expense.date, selectedYear, selectedMonth);
     });
 
     this.selectedMonthLabel = new Date(selectedYear, selectedMonthIndex).toLocaleDateString('en-US', {
